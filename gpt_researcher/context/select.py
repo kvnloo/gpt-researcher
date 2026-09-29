@@ -8,6 +8,7 @@ both call ``select_context``. ``CONTEXT_FILTER`` picks how chunks are chosen:
   keyword     BM25 keyword ranking: local, no API, no model, no embeddings
   embeddings  embedding similarity (needs an embedding provider)
   none        no filtering: every page, in full
+  z0int       z0int's context.filter primitive; GPT Researcher still owns chunking
 
 Anything that fails degrades to ``keyword``, so no mode can leave a run
 without context. Benchmarks: ``evals/context_filter``.
@@ -26,7 +27,7 @@ from .retriever import SearchAPIRetriever
 
 logger = logging.getLogger(__name__)
 
-CONTEXT_FILTERS = ("auto", "jev", "keyword", "embeddings", "none")
+CONTEXT_FILTERS = ("auto", "jev", "keyword", "embeddings", "none", "z0int")
 
 #: Keyword chunks must score at least this fraction of the best chunk, and
 #: up to this many are kept. Chosen by evals/context_filter: the threshold
@@ -82,6 +83,19 @@ async def select_context(
                 query=query, max_results=max_results, cost_callback=cost_callback)
         except JevError as e:
             logger.warning(f"Jev context filter unavailable ({e}); using keyword ranking")
+
+    if mode == "z0int":
+        from .z0int_filter import Z0intContextCompressor
+
+        # Scraped web pages are public research inputs, so the z0int lane may
+        # authorize remote (Jev) scoring; the keyword lane inside z0int stays
+        # local regardless. Set Z0INT_CONTEXT_REMOTE=0 for private sources.
+        remote = os.environ.get("Z0INT_CONTEXT_REMOTE", "1") != "0"
+        sub_mode = os.environ.get("Z0INT_CONTEXT_MODE", "keyword")
+        return await Z0intContextCompressor(
+            documents=pages, mode=sub_mode, remote=remote,
+            prompt_family=prompt_family,
+        ).async_get_context(query, max_results, cost_callback)
 
     if mode == "embeddings":
         try:
