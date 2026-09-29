@@ -1,0 +1,34 @@
+{
+  "query": "What is the capital of France?",
+  "rows": [
+    {
+      "comparison": "upstream keyword vs z0int keyword",
+      "upstream_chunks": 2,
+      "z0int_chunks": 2,
+      "hashes_identical": true,
+      "order_identical": true,
+      "source_identical": true,
+      "title_identical": true,
+      "context_identical": true,
+      "chars_upstream": 2108,
+      "chars_z0int": 2108,
+      "tokens_upstream": 425,
+      "tokens_z0int": 425
+    },
+    {
+      "comparison": "upstream none vs z0int none",
+      "upstream_chunks": 3,
+      "z0int_chunks": 3,
+      "hashes_identical": true,
+      "order_identical": true,
+      "source_identical": true,
+      "title_identical": true,
+      "context_identical": true,
+      "chars_upstream": 9723,
+      "chars_z0int": 9723,
+      "tokens_upstream": 1787,
+      "tokens_z0int": 1787
+    }
+  ],
+  "determinism": true
+}
